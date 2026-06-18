@@ -21,7 +21,7 @@ export default function Layout() {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-72 flex-shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col">
+      <aside className="w-72 h-full flex-shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col">
         <div className="px-6 py-5 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
@@ -73,19 +73,19 @@ export default function Layout() {
                 <User className="w-4 h-4 text-white" />
               </div>
             )}
-            <div className="flex-1 min-w-0">
+            <div className="text-center">
               <p className="text-sm font-medium text-slate-200 truncate">{user?.name || 'User'}</p>
               <p className="text-xs text-slate-500 truncate">{user?.email}</p>
             </div>
           </div>
           <button
             onClick={logout}
-            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            className="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign out</span>
           </button>
-          <p className="text-xs text-slate-500">Built by <span className="glow-text uppercase font-bold">Automations Team</span></p>
+          <p className="text-xs text-slate-500 text-center">Built by <span className="glow-text uppercase font-bold">Automations Team</span></p>
         </div>
       </aside>
 
