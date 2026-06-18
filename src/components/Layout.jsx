@@ -1,7 +1,8 @@
 import { Outlet, NavLink } from 'react-router-dom'
+import { useState } from 'react'
 import {
   LayoutDashboard, CalendarDays, Users, BarChart3,
-  FileText, Table2, ChevronRight, LogOut, User
+  FileText, Table2, ChevronRight, LogOut, User, GripVertical, Menu, ChevronLeft
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { useAuth } from '../context/AuthContext'
@@ -17,11 +18,24 @@ const NAV = [
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-72 h-full flex-shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col">
+      <aside className={cn(
+        'h-full flex-shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300 relative',
+        sidebarOpen ? 'w-72' : 'w-0 overflow-hidden'
+      )}>
+        {/* Handle bar to collapse */}
+        {sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-indigo-600 hover:bg-indigo-700 rounded-l-lg flex items-center justify-center shadow-md hover:shadow-lg transition-colors z-10"
+          >
+            <ChevronLeft className="w-4 h-4 text-white" />
+          </button>
+        )}
         <div className="px-6 py-5 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
@@ -90,8 +104,21 @@ export default function Layout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
+      <main className="flex-1 overflow-y-auto flex flex-col">
+        {/* Header with toggle button (only shows when sidebar is closed) */}
+        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+          {!sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-md hover:shadow-lg"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          )}
+        </header>
+        <div className="flex-1 overflow-y-auto">
+          <Outlet />
+        </div>
       </main>
     </div>
   )
