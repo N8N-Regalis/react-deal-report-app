@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <filter id="emboss" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.5" result="blur"/>
+      <feSpecularLighting in="blur" surfaceScale="1" specularConstant="1" specularExponent="20" lighting-color="#ffffff" result="specular">
+        <fePointLight x="-5" y="-5" z="10"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="specular"/>
+      <feComposite in="SourceGraphic" in2="specular" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+    </filter>
+  </defs>
+  
+  <!-- Blue background -->
+  <rect width="32" height="32" rx="6" fill="#1e40af"/>
+  
+  <!-- White shield -->
+  <path d="M16 4 L28 8 L28 16 C28 22 23 27 16 30 C9 27 4 22 4 16 L4 8 Z" fill="#ffffff"/>
+  
+  <!-- Golden lion rampant -->
+  <g transform="translate(10, 10) scale(0.6)">
+    <!-- Lion body -->
+    <path d="M8 20 L8 12 L6 10 L8 8 L10 6 L12 8 L14 6 L16 8 L18 10 L16 12 L16 20 Z" fill="#fbbf24"/>
+    <!-- Lion head -->
+    <circle cx="12" cy="6" r="4" fill="#fbbf24"/>
+    <!-- Lion mane -->
+    <path d="M8 4 Q12 0 16 4" stroke="#f59e0b" stroke-width="2" fill="none"/>
+    <!-- Lion legs -->
+    <path d="M8 20 L6 24 M16 20 L18 24" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+    <!-- Lion tail -->
+    <path d="M16 14 Q20 12 20 8" stroke="#fbbf24" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Analytics logo emblem (bottom right, embossed) -->
+  <g transform="translate(22, 22)" filter="url(#emboss)">
+    <circle cx="4" cy="4" r="5" fill="#10b981"/>
+    <path d="M2 6 L2 2 M4 6 L4 4 M6 6 L6 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>
