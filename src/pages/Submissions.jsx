@@ -92,6 +92,7 @@ export default function Submissions() {
         r.partner_name?.toLowerCase().includes(q) ||
         r.sourcer_name?.toLowerCase().includes(q) ||
         r.brokerage?.toLowerCase().includes(q) ||
+        r.listing_link?.toLowerCase().includes(q) ||
         r.id?.toLowerCase().includes(q)
       )
     }
@@ -146,7 +147,7 @@ export default function Submissions() {
             <input
               type="text"
               className="select-field pl-8 pr-8 w-64"
-              placeholder="Listing, partner, sourcer…"
+              placeholder="Listing, partner, sourcer, link…"
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
             />
