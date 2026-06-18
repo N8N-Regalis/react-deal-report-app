@@ -1,9 +1,10 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, CalendarDays, Users, BarChart3,
-  FileText, Table2, ChevronRight
+  FileText, Table2, ChevronRight, LogOut, User
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useAuth } from '../context/AuthContext'
 
 const NAV = [
   { to: '/dashboard',       label: 'Dashboard',              icon: LayoutDashboard },
@@ -15,6 +16,8 @@ const NAV = [
 ]
 
 export default function Layout() {
+  const { user, logout } = useAuth()
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Sidebar */}
@@ -55,7 +58,33 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="px-4 py-3 border-t border-slate-800">
+        
+        {/* User Info & Logout */}
+        <div className="px-4 py-3 border-t border-slate-800 space-y-3">
+          <div className="flex items-center gap-3">
+            {user?.picture ? (
+              <img 
+                src={user.picture} 
+                alt={user.name} 
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-200 truncate">{user?.name || 'User'}</p>
+              <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign out</span>
+          </button>
           <p className="text-xs text-slate-500">Built by <span className="glow-text uppercase font-bold">Automations Team</span></p>
         </div>
       </aside>
