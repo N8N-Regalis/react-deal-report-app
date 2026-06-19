@@ -106,14 +106,54 @@ export default function Layout() {
       {/* Main content */}
       <main className="flex-1 overflow-y-auto flex flex-col">
         {/* Header with toggle button (only shows when sidebar is closed) */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+        <header className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between gap-3">
           {!sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-md hover:shadow-lg"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+            <>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="p-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-md hover:shadow-lg"
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-100 leading-tight font-orbitron uppercase tracking-wide">Deal Sourcing Form</p>
+                    <p className="text-xs glow-text font-medium uppercase">Report Dashboard</p>
+                  </div>
+                </div>
+              </div>
+              {/* User Info & Logout */}
+              <div className="flex items-center gap-3 ml-auto">
+                <div className="flex items-center gap-3">
+                  {user?.picture ? (
+                    <img 
+                      src={user.picture} 
+                      alt={user.name} 
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  <div className="hidden sm:block">
+                    <p className="text-sm font-medium text-slate-200 truncate">{user?.name || 'User'}</p>
+                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sign out</span>
+                </button>
+              </div>
+            </>
           )}
         </header>
         <div className="flex-1 overflow-y-auto">

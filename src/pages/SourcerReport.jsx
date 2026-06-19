@@ -17,7 +17,7 @@ export default function SourcerReport() {
   const [team,       setTeam]       = useState('all')
   const [associate,  setAssociate]  = useState('all')
   const [partner,    setPartner]    = useState('all')
-  const [shiftDate,  setShiftDate]  = useState(today)
+  const [shiftDate,  setShiftDate]  = useState("")
 
   const { userMap, users } = useBitrixUsers()
   const { meta } = useSubmissionsMeta(userMap)
