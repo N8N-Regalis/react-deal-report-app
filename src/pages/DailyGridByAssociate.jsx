@@ -6,16 +6,21 @@ import { useSubmissions, useSubmissionsMeta } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
 import { MONTHS, getAllDatesInMonth, getYearRange, getWeeksInMonth } from '../lib/utils'
 
-export default function WeeklyGridByAssociate() {
+export default function DailyGridByAssociate() {
   const currentYear  = new Date().getFullYear()
   const currentMonth = MONTHS[new Date().getMonth()]
   const [year,  setYear]  = useState(String(currentYear))
   const [month, setMonth] = useState(currentMonth)
-  const [week,  setWeek]  = useState('all')
+  const [week,       setWeek]       = useState('all')
+  const [team,       setTeam]       = useState('all')
+  const [associate,  setAssociate]  = useState('all')
+  const [partner,    setPartner]    = useState('all')
 
   const { userMap } = useBitrixUsers()
   const { meta } = useSubmissionsMeta(userMap)
-  const { data: rawData, loading, error } = useSubmissions({ year: Number(year), month })
+  const filters = useMemo(() => ({ year: Number(year), month }), [year, month])
+
+  const { data: rawData, loading, error } = useSubmissions(filters)
 
   // Compute duplicates based on: same partner + listing link appearing multiple times with Source Type = "New"
   const data = useMemo(() => {
@@ -41,7 +46,7 @@ export default function WeeklyGridByAssociate() {
     )
 
     const seenKeys = new Set()
-    return enriched.map(r => {
+    let rows = enriched.map(r => {
       const sourceType = (r.source_type || '').trim().toLowerCase()
       if (sourceType === 'new') {
         const key = `${r.partner_name || ''}|${r.listing_link || ''}`
@@ -55,7 +60,12 @@ export default function WeeklyGridByAssociate() {
       }
       return { ...r, is_duplicate: 'Unique' }
     })
-  }, [rawData, userMap])
+
+    if (team !== 'all')      rows = rows.filter(r => r.team_name === team)
+    if (associate !== 'all') rows = rows.filter(r => r.sourcer_name === associate)
+    if (partner !== 'all')   rows = rows.filter(r => r.partner_name === partner)
+    return rows
+  }, [rawData, userMap, team, associate, partner])
 
   const monthNum   = MONTHS.indexOf(month) + 1
   const allDates   = useMemo(() => getAllDatesInMonth(Number(year), monthNum), [year, monthNum])
@@ -74,7 +84,7 @@ export default function WeeklyGridByAssociate() {
     const assocMap = {}
     unique.forEach(r => {
       if (!r.sourcer_name || !r.source_date) return
-      const dateKey = new Date(r.source_date).toDateString()
+      const dateKey = r.source_date
       if (!assocMap[r.sourcer_name]) assocMap[r.sourcer_name] = {}
       assocMap[r.sourcer_name][dateKey] = (assocMap[r.sourcer_name][dateKey] || 0) + 1
     })
@@ -89,10 +99,25 @@ export default function WeeklyGridByAssociate() {
   const years = getYearRange()
   const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
+  const getDayFromDateStr = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00Z')
+    return d.getUTCDay()
+  }
+
+  const getDateFromDateStr = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00Z')
+    return d.getUTCDate()
+  }
+
+  const getMonthFromDateStr = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00Z')
+    return d.getUTCMonth() + 1
+  }
+
   return (
     <div className="pb-10">
       <PageHeader
-        title="Weekly Grid by Associate"
+        title="Daily Grid by Associate"
         subtitle="Count of unique sourced deals per M&A associate per day"
       />
       <FilterBar>
@@ -112,6 +137,24 @@ export default function WeeklyGridByAssociate() {
             {weeks.map(w => <option key={w.label} value={w.label}>{w.label}</option>)}
           </select>
         </FilterGroup>
+        <FilterGroup label="Team (Optional)">
+          <select className="select-field" value={team} onChange={e => setTeam(e.target.value)}>
+            <option value="all">All Teams</option>
+            {meta.teams.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </FilterGroup>
+        <FilterGroup label="M&A Associate (Optional)">
+          <select className="select-field" value={associate} onChange={e => setAssociate(e.target.value)}>
+            <option value="all">All Associates</option>
+            {meta.associates.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </FilterGroup>
+        <FilterGroup label="Client Name (Optional)">
+          <select className="select-field" value={partner} onChange={e => setPartner(e.target.value)}>
+            <option value="all">All Partners</option>
+            {meta.partners.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </FilterGroup>
       </FilterBar>
 
       {error && <ErrorMessage message={error} />}
@@ -124,9 +167,9 @@ export default function WeeklyGridByAssociate() {
                   <th className="table-th sticky left-0 bg-gray-50 z-10 min-w-52">M&A Associate</th>
                   <th className="table-th text-right bg-indigo-50 text-indigo-700">TOTAL</th>
                   {filteredDates.map(d => (
-                    <th key={d.toISOString()} className="table-th text-center min-w-10">
-                      <div className="text-gray-400 font-normal">{DAY_LABELS[d.getDay()]}</div>
-                      <div>{d.getMonth() + 1}/{d.getDate()}</div>
+                    <th key={d} className="table-th text-center min-w-10">
+                      <div className="text-gray-400 font-normal">{DAY_LABELS[getDayFromDateStr(d)]}</div>
+                      <div>{getMonthFromDateStr(d)}/{getDateFromDateStr(d)}</div>
                     </th>
                   ))}
                 </tr>
@@ -137,9 +180,9 @@ export default function WeeklyGridByAssociate() {
                     <td className="table-td sticky left-0 bg-white font-medium z-10">{row.associate}</td>
                     <td className="table-td text-right font-bold text-indigo-700 bg-indigo-50">{row.total}</td>
                     {filteredDates.map(d => {
-                      const val = row.days[d.toDateString()] || 0
+                      const val = row.days[d] || 0
                       return (
-                        <td key={d.toISOString()} className={`table-td text-center ${val > 0 ? 'font-medium text-gray-900' : 'text-gray-300'}`}>
+                        <td key={d} className={`table-td text-center ${val > 0 ? 'font-medium text-gray-900' : 'text-gray-300'}`}>
                           {val > 0 ? val : '—'}
                         </td>
                       )
@@ -160,9 +203,9 @@ export default function WeeklyGridByAssociate() {
                       {grid.reduce((s, r) => s + r.total, 0)}
                     </td>
                     {filteredDates.map(d => {
-                      const total = grid.reduce((s, r) => s + (r.days[d.toDateString()] || 0), 0)
+                      const total = grid.reduce((s, r) => s + (r.days[d] || 0), 0)
                       return (
-                        <td key={d.toISOString()} className={`table-td text-center ${total > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
+                        <td key={d} className={`table-td text-center ${total > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
                           {total > 0 ? total : '—'}
                         </td>
                       )

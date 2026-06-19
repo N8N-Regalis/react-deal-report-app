@@ -7,6 +7,8 @@ import { useSubmissions, useSubmissionsMeta } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
 import { MONTHS, getStatusColor, formatDate, getYearRange } from '../lib/utils'
 
+const PAGE_SIZE = 50
+
 export default function SourcerReport() {
   const currentYear  = new Date().getFullYear()
   const currentMonth = MONTHS[new Date().getMonth()]
@@ -18,6 +20,7 @@ export default function SourcerReport() {
   const [associate,  setAssociate]  = useState('all')
   const [partner,    setPartner]    = useState('all')
   const [shiftDate,  setShiftDate]  = useState("")
+  const [page,       setPage]       = useState(1)
 
   const { userMap, users } = useBitrixUsers()
   const { meta } = useSubmissionsMeta(userMap)
@@ -40,6 +43,9 @@ export default function SourcerReport() {
     return rows
   }, [rawData, userMap, team, associate])
 
+  const paginated = useMemo(() => data.slice(0, page * PAGE_SIZE), [data, page])
+  const hasMore   = paginated.length < data.length
+
   const years = getYearRange()
 
   return (
@@ -54,33 +60,33 @@ export default function SourcerReport() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-1">Year</p>
-            <select className="select-field w-full" value={year} onChange={e => setYear(e.target.value)}>
+            <select className="select-field w-full" value={year} onChange={e => { setYear(e.target.value); setPage(1) }}>
               {years.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-1">Month</p>
-            <select className="select-field w-full" value={month} onChange={e => setMonth(e.target.value)}>
+            <select className="select-field w-full" value={month} onChange={e => { setMonth(e.target.value); setPage(1) }}>
               {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-1">Team Name</p>
-            <select className="select-field w-full" value={team} onChange={e => setTeam(e.target.value)}>
+            <select className="select-field w-full" value={team} onChange={e => { setTeam(e.target.value); setPage(1) }}>
               <option value="all">All Teams</option>
               {meta.teams.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-1">M&A Associate</p>
-            <select className="select-field w-full" value={associate} onChange={e => setAssociate(e.target.value)}>
+            <select className="select-field w-full" value={associate} onChange={e => { setAssociate(e.target.value); setPage(1) }}>
               <option value="all">All Associates</option>
               {meta.associates.map(a => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-1">Partner Name</p>
-            <select className="select-field w-full" value={partner} onChange={e => setPartner(e.target.value)}>
+            <select className="select-field w-full" value={partner} onChange={e => { setPartner(e.target.value); setPage(1) }}>
               <option value="all">All Partners</option>
               {meta.partners.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -91,12 +97,12 @@ export default function SourcerReport() {
               type="date"
               className="select-field w-full"
               value={shiftDate}
-              onChange={e => setShiftDate(e.target.value)}
+              onChange={e => { setShiftDate(e.target.value); setPage(1) }}
             />
           </div>
         </div>
         <div className="mt-3 pt-3 border-t border-gray-100 flex gap-4 text-xs text-gray-500">
-          <span>Showing <strong className="text-gray-900">{data.length}</strong> submissions</span>
+          <span>Showing <strong className="text-gray-900">{paginated.length.toLocaleString()}</strong> of <strong className="text-gray-900">{data.length.toLocaleString()}</strong> submissions</span>
         </div>
       </div>
 
@@ -123,7 +129,7 @@ export default function SourcerReport() {
                 </tr>
               </thead>
               <tbody>
-                {data.map(row => (
+                {paginated.map(row => (
                   <tr key={row.id} className="hover:bg-gray-50">
                     <td className="table-td font-mono text-xs text-gray-500">{row.id}</td>
                     <td className="table-td whitespace-nowrap">{formatDate(row.source_date)}</td>
@@ -157,7 +163,7 @@ export default function SourcerReport() {
                     <td className="table-td text-xs text-gray-500 max-w-xs">{row.notes}</td>
                   </tr>
                 ))}
-                {data.length === 0 && (
+                {paginated.length === 0 && (
                   <tr>
                     <td colSpan={13} className="table-td text-center text-gray-400 py-10">
                       No submissions found for the selected filters
@@ -167,6 +173,14 @@ export default function SourcerReport() {
               </tbody>
             </table>
           </div>
+
+          {hasMore && (
+            <div className="flex justify-center">
+              <button className="btn-outline" onClick={() => setPage(p => p + 1)}>
+                Load more ({(data.length - paginated.length).toLocaleString()} remaining)
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -5,7 +5,7 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import DailyGridByPartner from './pages/DailyGridByPartner'
-import WeeklyGridByAssociate from './pages/WeeklyGridByAssociate'
+import DailyGridByAssociate from './pages/DailyGridByAssociate'
 import MonthlyTeamSummary from './pages/MonthlyTeamSummary'
 import SourcerReport from './pages/SourcerReport'
 import Submissions from './pages/Submissions'
@@ -20,7 +20,7 @@ export default function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="daily-grid" element={<DailyGridByPartner />} />
-            <Route path="weekly-grid" element={<WeeklyGridByAssociate />} />
+            <Route path="daily-grid-associate" element={<DailyGridByAssociate />} />
             <Route path="monthly-summary" element={<MonthlyTeamSummary />} />
             <Route path="sourcer-report" element={<SourcerReport />} />
             <Route path="submissions" element={<Submissions />} />

@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext'
 const NAV = [
   { to: '/dashboard',       label: 'Dashboard',              icon: LayoutDashboard },
   { to: '/daily-grid',      label: 'Daily Grid (Client)',   icon: CalendarDays    },
-  { to: '/weekly-grid',     label: 'Weekly Grid (Associate)',icon: Users           },
+  { to: '/daily-grid-associate', label: 'Daily Grid (Associate)',icon: Users           },
   { to: '/monthly-summary', label: 'Monthly Team Summary',   icon: BarChart3       },
   { to: '/sourcer-report',  label: 'Sourcer Report',         icon: FileText        },
   { to: '/submissions',     label: 'All Submissions',        icon: Table2          },

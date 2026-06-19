@@ -11,8 +11,10 @@ export default function DailyGridByPartner() {
   const currentMonth = MONTHS[new Date().getMonth()]
   const [year,  setYear]  = useState(String(currentYear))
   const [month, setMonth] = useState(currentMonth)
-  const [week,  setWeek]  = useState('all')
-  const [team,  setTeam]  = useState('all')
+  const [week,       setWeek]       = useState('all')
+  const [team,       setTeam]       = useState('all')
+  const [associate,  setAssociate]  = useState('all')
+  const [partner,    setPartner]    = useState('all')
 
   const { userMap } = useBitrixUsers()
   const { meta } = useSubmissionsMeta(userMap)
@@ -59,9 +61,11 @@ export default function DailyGridByPartner() {
       return { ...r, is_duplicate: 'Unique' }
     })
 
-    if (team !== 'all') rows = rows.filter(r => r.team_name === team)
+    if (team !== 'all')      rows = rows.filter(r => r.team_name === team)
+    if (associate !== 'all') rows = rows.filter(r => r.sourcer_name === associate)
+    if (partner !== 'all')   rows = rows.filter(r => r.partner_name === partner)
     return rows
-  }, [rawData, userMap, team])
+  }, [rawData, userMap, team, associate, partner])
 
   const monthNum = MONTHS.indexOf(month) + 1
   const allDates = useMemo(() => getAllDatesInMonth(Number(year), monthNum), [year, monthNum])
@@ -80,7 +84,7 @@ export default function DailyGridByPartner() {
     const partnerMap = {}
     unique.forEach(r => {
       if (!r.partner_name || !r.source_date) return
-      const dateKey = new Date(r.source_date).toDateString()
+      const dateKey = r.source_date
       if (!partnerMap[r.partner_name]) partnerMap[r.partner_name] = {}
       partnerMap[r.partner_name][dateKey] = (partnerMap[r.partner_name][dateKey] || 0) + 1
     })
@@ -94,6 +98,16 @@ export default function DailyGridByPartner() {
 
   const years = getYearRange()
   const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+
+  const getDayFromDateStr = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00Z')
+    return d.getUTCDay()
+  }
+
+  const getDateFromDateStr = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00Z')
+    return d.getUTCDate()
+  }
 
   return (
     <div className="pb-10">
@@ -118,10 +132,22 @@ export default function DailyGridByPartner() {
             {weeks.map(w => <option key={w.label} value={w.label}>{w.label}</option>)}
           </select>
         </FilterGroup>
-        <FilterGroup label="Team">
+        <FilterGroup label="Team (Optional)">
           <select className="select-field" value={team} onChange={e => setTeam(e.target.value)}>
             <option value="all">All Teams</option>
             {meta.teams.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </FilterGroup>
+        <FilterGroup label="M&A Associate (Optional)">
+          <select className="select-field" value={associate} onChange={e => setAssociate(e.target.value)}>
+            <option value="all">All Associates</option>
+            {meta.associates.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </FilterGroup>
+        <FilterGroup label="Client Name (Optional)">
+          <select className="select-field" value={partner} onChange={e => setPartner(e.target.value)}>
+            <option value="all">All Partners</option>
+            {meta.partners.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         </FilterGroup>
       </FilterBar>
@@ -136,9 +162,9 @@ export default function DailyGridByPartner() {
                   <th className="table-th sticky left-0 bg-gray-50 z-10 min-w-48">Client Name</th>
                   <th className="table-th text-right bg-indigo-50 text-indigo-700">TOTAL</th>
                   {filteredDates.map(d => (
-                    <th key={d.toISOString()} className="table-th text-center min-w-10">
-                      <div className="text-gray-400 font-normal">{DAY_LABELS[d.getDay()]}</div>
-                      <div>{d.getDate()}</div>
+                    <th key={d} className="table-th text-center min-w-10">
+                      <div className="text-gray-400 font-normal">{DAY_LABELS[getDayFromDateStr(d)]}</div>
+                      <div>{getDateFromDateStr(d)}</div>
                     </th>
                   ))}
                 </tr>
@@ -149,9 +175,9 @@ export default function DailyGridByPartner() {
                     <td className="table-td sticky left-0 bg-white font-medium z-10">{row.partner}</td>
                     <td className="table-td text-right font-bold text-indigo-700 bg-indigo-50">{row.total}</td>
                     {filteredDates.map(d => {
-                      const val = row.days[d.toDateString()] || 0
+                      const val = row.days[d] || 0
                       return (
-                        <td key={d.toISOString()} className={`table-td text-center ${val > 0 ? 'font-medium text-gray-900' : 'text-gray-300'}`}>
+                        <td key={d} className={`table-td text-center ${val > 0 ? 'font-medium text-gray-900' : 'text-gray-300'}`}>
                           {val > 0 ? val : '—'}
                         </td>
                       )
@@ -173,9 +199,9 @@ export default function DailyGridByPartner() {
                       {grid.reduce((s, r) => s + r.total, 0)}
                     </td>
                     {filteredDates.map(d => {
-                      const total = grid.reduce((s, r) => s + (r.days[d.toDateString()] || 0), 0)
+                      const total = grid.reduce((s, r) => s + (r.days[d] || 0), 0)
                       return (
-                        <td key={d.toISOString()} className={`table-td text-center ${total > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
+                        <td key={d} className={`table-td text-center ${total > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
                           {total > 0 ? total : '—'}
                         </td>
                       )

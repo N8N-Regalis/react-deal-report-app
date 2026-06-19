@@ -46,7 +46,9 @@ export function getAllDatesInMonth(year, month) {
   const days = getDaysInMonth(year, month)
   const dates = []
   for (let d = 1; d <= days; d++) {
-    dates.push(new Date(year, month - 1, d))
+    const monthStr = String(month).padStart(2, '0')
+    const dayStr = String(d).padStart(2, '0')
+    dates.push(`${year}-${monthStr}-${dayStr}`)
   }
   return dates
 }
@@ -75,14 +77,17 @@ export function getYearRange() {
 export function getWeeksInMonth(year, month) {
   const dates = getAllDatesInMonth(year, month)
   const weekMap = {}
-  dates.forEach(d => {
-    const day = d.getDay()
+  dates.forEach(dateStr => {
+    const d = new Date(dateStr + 'T00:00:00Z')
+    const day = d.getUTCDay()
     const monday = new Date(d)
-    monday.setDate(d.getDate() - ((day + 6) % 7))
+    monday.setUTCDate(d.getUTCDate() - ((day + 6) % 7))
     const sunday = new Date(monday)
-    sunday.setDate(monday.getDate() + 6)
+    sunday.setUTCDate(monday.getUTCDate() + 6)
+    const startStr = `${monday.getUTCFullYear()}-${String(monday.getUTCMonth() + 1).padStart(2, '0')}-${String(monday.getUTCDate()).padStart(2, '0')}`
+    const endStr = `${sunday.getUTCFullYear()}-${String(sunday.getUTCMonth() + 1).padStart(2, '0')}-${String(sunday.getUTCDate()).padStart(2, '0')}`
     const key = `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-    if (!weekMap[key]) weekMap[key] = { start: monday, end: sunday, label: key }
+    if (!weekMap[key]) weekMap[key] = { start: startStr, end: endStr, label: key }
   })
   return Object.values(weekMap)
 }
