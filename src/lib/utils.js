@@ -12,7 +12,7 @@ export const MONTHS = [
 
 export const QUARTERS = ['Q1','Q2','Q3','Q4']
 
-export const TEAMS = ['EA','Lemon','Racquel','Rox']
+export const TEAMS = ['EA','Lemon','Racquel','Rox','Unassigned']
 
 export const STATUS_COLORS = {
   'Inquired':             'bg-blue-100 text-blue-800',
@@ -76,18 +76,41 @@ export function getYearRange() {
 
 export function getWeeksInMonth(year, month) {
   const dates = getAllDatesInMonth(year, month)
-  const weekMap = {}
-  dates.forEach(dateStr => {
-    const d = new Date(dateStr + 'T00:00:00Z')
+  const weeks = []
+  
+  if (dates.length === 0) return weeks
+  
+  let weekStart = 0
+  
+  for (let i = 0; i < dates.length; i++) {
+    const d = new Date(dates[i] + 'T00:00:00Z')
     const day = d.getUTCDay()
-    const monday = new Date(d)
-    monday.setUTCDate(d.getUTCDate() - ((day + 6) % 7))
-    const sunday = new Date(monday)
-    sunday.setUTCDate(monday.getUTCDate() + 6)
-    const startStr = `${monday.getUTCFullYear()}-${String(monday.getUTCMonth() + 1).padStart(2, '0')}-${String(monday.getUTCDate()).padStart(2, '0')}`
-    const endStr = `${sunday.getUTCFullYear()}-${String(sunday.getUTCMonth() + 1).padStart(2, '0')}-${String(sunday.getUTCDate()).padStart(2, '0')}`
-    const key = `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-    if (!weekMap[key]) weekMap[key] = { start: startStr, end: endStr, label: key }
-  })
-  return Object.values(weekMap)
+    
+    // When we hit a Monday (and it's not the first day), close the previous week
+    if (day === 1 && i > 0) {
+      const startDate = dates[weekStart]
+      const endDate = dates[i - 1]
+      const startD = new Date(startDate + 'T00:00:00Z')
+      const endD = new Date(endDate + 'T00:00:00Z')
+      const startStr = `${startD.getUTCFullYear()}-${String(startD.getUTCMonth() + 1).padStart(2, '0')}-${String(startD.getUTCDate()).padStart(2, '0')}`
+      const endStr = `${endD.getUTCFullYear()}-${String(endD.getUTCMonth() + 1).padStart(2, '0')}-${String(endD.getUTCDate()).padStart(2, '0')}`
+      const key = `${startD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+      weeks.push({ start: startStr, end: endStr, label: key })
+      weekStart = i
+    }
+  }
+  
+  // Add the final week
+  if (weekStart < dates.length) {
+    const startDate = dates[weekStart]
+    const endDate = dates[dates.length - 1]
+    const startD = new Date(startDate + 'T00:00:00Z')
+    const endD = new Date(endDate + 'T00:00:00Z')
+    const startStr = `${startD.getUTCFullYear()}-${String(startD.getUTCMonth() + 1).padStart(2, '0')}-${String(startD.getUTCDate()).padStart(2, '0')}`
+    const endStr = `${endD.getUTCFullYear()}-${String(endD.getUTCMonth() + 1).padStart(2, '0')}-${String(endD.getUTCDate()).padStart(2, '0')}`
+    const key = `${startD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    weeks.push({ start: startStr, end: endStr, label: key })
+  }
+  
+  return weeks
 }

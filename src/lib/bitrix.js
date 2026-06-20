@@ -29,7 +29,7 @@ export function normalizeBitrixUsers(rawUsers) {
     const lastName  = u.LAST_NAME || ''
     const fullName  = [firstName, lastName].filter(Boolean).join(' ').trim()
     const email     = (u.EMAIL || '').toLowerCase().trim()
-    const teamName  = u[TEAM_FIELD] || ''
+    const teamName  = u[TEAM_FIELD] || 'Unassigned'
 
     return {
       id:           u.ID,

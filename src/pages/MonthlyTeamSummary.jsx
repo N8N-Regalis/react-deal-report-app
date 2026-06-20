@@ -7,7 +7,7 @@ import { useSubmissions } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
 import { MONTHS, TEAMS, getYearRange } from '../lib/utils'
 
-const TEAM_COLORS = { EA: '#6366f1', Lemon: '#f59e0b', Racquel: '#10b981', Rox: '#f43f5e' }
+const TEAM_COLORS = { EA: '#6366f1', Lemon: '#f59e0b', Racquel: '#10b981', Rox: '#f43f5e', Unassigned: '#9ca3af' }
 
 export default function MonthlyTeamSummary() {
   const currentYear = new Date().getFullYear()
@@ -20,7 +20,7 @@ export default function MonthlyTeamSummary() {
   const data = useMemo(() => {
     const enriched = rawData.map(r => {
       const u = userMap[r.sourcer_email || '']
-      return { ...r, sourcer_name: u ? u.fullName : r.user_email, team_name: u ? u.teamName : '' }
+      return { ...r, sourcer_name: u ? u.fullName : r.user_email, team_name: u ? u.teamName : 'Unassigned' }
     })
 
     const newSourceGroups = {}

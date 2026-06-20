@@ -5,7 +5,7 @@ import FilterBar, { FilterGroup } from '../components/FilterBar'
 import LoadingSpinner, { ErrorMessage } from '../components/LoadingSpinner'
 import { useSubmissions, useSubmissionsMeta } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
-import { MONTHS, getStatusColor, formatDate, getYearRange } from '../lib/utils'
+import { MONTHS, getStatusColor, formatDate, getYearRange, getWeeksInMonth } from '../lib/utils'
 
 const PAGE_SIZE = 50
 
@@ -16,6 +16,7 @@ export default function SourcerReport() {
 
   const [year,       setYear]       = useState(String(currentYear))
   const [month,      setMonth]      = useState(currentMonth)
+  const [week,       setWeek]       = useState('all')
   const [team,       setTeam]       = useState('all')
   const [associate,  setAssociate]  = useState('all')
   const [partner,    setPartner]    = useState('all')
@@ -27,10 +28,11 @@ export default function SourcerReport() {
 
   const filters = useMemo(() => {
     const f = { year: Number(year), month }
+    if (week !== 'all')      f.week         = week
     if (partner !== 'all')   f.partnerName  = partner
     if (shiftDate)           f.sourceDate   = shiftDate
     return f
-  }, [year, month, partner, shiftDate])
+  }, [year, month, week, partner, shiftDate])
 
   const { data: rawData, loading, error } = useSubmissions(filters)
   const data = useMemo(() => {
@@ -47,6 +49,11 @@ export default function SourcerReport() {
   const hasMore   = paginated.length < data.length
 
   const years = getYearRange()
+  const weeks = useMemo(() => {
+    if (month === 'all') return []
+    const monthNum = MONTHS.indexOf(month) + 1
+    return getWeeksInMonth(Number(year), monthNum)
+  }, [year, month])
 
   return (
     <div className="pb-10">
@@ -57,7 +64,7 @@ export default function SourcerReport() {
 
       {/* Header filter section styled like the sheet */}
       <div className="mx-6 mb-4 card p-5">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 text-sm">
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-1">Year</p>
             <select className="select-field w-full" value={year} onChange={e => { setYear(e.target.value); setPage(1) }}>
@@ -66,8 +73,15 @@ export default function SourcerReport() {
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-1">Month</p>
-            <select className="select-field w-full" value={month} onChange={e => { setMonth(e.target.value); setPage(1) }}>
+            <select className="select-field w-full" value={month} onChange={e => { setMonth(e.target.value); setWeek('all'); setPage(1) }}>
               {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-500 mb-1">Week</p>
+            <select className="select-field w-full" value={week} onChange={e => { setWeek(e.target.value); setPage(1) }} disabled={weeks.length === 0}>
+              <option value="all">All Weeks</option>
+              {weeks.map(w => <option key={w.label} value={w.label}>{w.label}</option>)}
             </select>
           </div>
           <div>

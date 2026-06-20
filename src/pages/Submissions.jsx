@@ -5,7 +5,7 @@ import FilterBar, { FilterGroup } from '../components/FilterBar'
 import LoadingSpinner, { ErrorMessage } from '../components/LoadingSpinner'
 import { useSubmissions, useSubmissionsMeta } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
-import { MONTHS, getStatusColor, formatDate, getYearRange } from '../lib/utils'
+import { MONTHS, getStatusColor, formatDate, getYearRange, getWeeksInMonth } from '../lib/utils'
 
 const PAGE_SIZE = 50
 
@@ -13,6 +13,7 @@ export default function Submissions() {
   const currentYear  = new Date().getFullYear()
   const [year,       setYear]       = useState(String(currentYear))
   const [month,      setMonth]      = useState('all')
+  const [week,       setWeek]       = useState('all')
   const [team,       setTeam]       = useState('all')
   const [status,     setStatus]     = useState('all')
   const [duplicate,  setDuplicate]  = useState('all')
@@ -25,8 +26,9 @@ export default function Submissions() {
   const filters = useMemo(() => {
     const f = { year: Number(year) }
     if (month !== 'all') f.month = month
+    if (week !== 'all')  f.week  = week
     return f
-  }, [year, month])
+  }, [year, month, week])
 
   const { data: rawData, loading, error } = useSubmissions(filters)
 
@@ -102,6 +104,11 @@ export default function Submissions() {
   const paginated = useMemo(() => filtered.slice(0, page * PAGE_SIZE), [filtered, page])
   const hasMore   = paginated.length < filtered.length
   const years     = getYearRange()
+  const weeks      = useMemo(() => {
+    if (month === 'all') return []
+    const monthNum = MONTHS.indexOf(month) + 1
+    return getWeeksInMonth(Number(year), monthNum)
+  }, [year, month])
 
   return (
     <div className="pb-10">
@@ -117,9 +124,15 @@ export default function Submissions() {
           </select>
         </FilterGroup>
         <FilterGroup label="Month">
-          <select className="select-field" value={month} onChange={e => { setMonth(e.target.value); setPage(1) }}>
+          <select className="select-field" value={month} onChange={e => { setMonth(e.target.value); setWeek('all'); setPage(1) }}>
             <option value="all">All Months</option>
             {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </FilterGroup>
+        <FilterGroup label="Week">
+          <select className="select-field" value={week} onChange={e => { setWeek(e.target.value); setPage(1) }} disabled={weeks.length === 0}>
+            <option value="all">All Weeks</option>
+            {weeks.map(w => <option key={w.label} value={w.label}>{w.label}</option>)}
           </select>
         </FilterGroup>
         <FilterGroup label="Team">

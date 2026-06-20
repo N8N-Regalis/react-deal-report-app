@@ -10,7 +10,7 @@ function getWeekLabel(date) {
   const d = new Date(date)
   const day = d.getDay()
   const monday = new Date(d)
-  monday.setDate(d.getDate() - ((day + 6) % 6))
+  monday.setDate(d.getDate() - ((day + 6) % 7))
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
   const fmt = (dt) => dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -109,9 +109,9 @@ export function useSubmissionsMeta(userMap = {}) {
     const teams = unique(
       allData.map(r => {
         const u = userMap[(r.sourcer_email || '')]
-        return u ? u.teamName : ''
+        return u ? u.teamName : 'Unassigned'
       })
-    ).filter(Boolean)
+    )
     const associates = unique(
       allData.map(r => {
         const u = userMap[(r.sourcer_email || '')]

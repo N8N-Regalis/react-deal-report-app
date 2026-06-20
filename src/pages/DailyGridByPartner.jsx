@@ -26,7 +26,7 @@ export default function DailyGridByPartner() {
   const data = useMemo(() => {
     let rows = rawData.map(r => {
       const u = userMap[r.sourcer_email || '']
-      return { ...r, sourcer_name: u ? u.fullName : r.user_email, team_name: u ? u.teamName : '' }
+      return { ...r, sourcer_name: u ? u.fullName : r.user_email, team_name: u ? u.teamName : 'Unassigned' }
     })
 
     const newSourceGroups = {}

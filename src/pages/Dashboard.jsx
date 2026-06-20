@@ -158,12 +158,12 @@ export default function Dashboard() {
 
           {/* KPI Row */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <KpiCard label="Total Submissions" value={data.length}    color="indigo" icon={FileText}       />
-            <KpiCard label="Unique Deals"      value={unique.length}  color="blue"   icon={CheckCircle}    />
-            <KpiCard label="Duplicates"        value={duplicateCount} color="yellow" icon={XCircle}        />
-            <KpiCard label="NDA Signed"        value={byStatus.find(s => s.name === 'NDA Signed')?.count ?? 0} color="green" icon={CheckCircle} />
-            <KpiCard label="Axed"              value={byStatus.find(s => s.name === 'Axed')?.count ?? 0}       color="red"   icon={XCircle}     />
-            <KpiCard label="Overdue"           value={overdue.length} color="purple" icon={AlertTriangle}  />
+            <KpiCard label="Total Submissions" value={data.length}    color="indigo" icon={FileText}       description="All deal submissions including duplicates" />
+            <KpiCard label="Unique Deals"      value={unique.length}  color="blue"   icon={CheckCircle}    description="Unique deal sourced for the Client" />
+            <KpiCard label="Duplicates"        value={duplicateCount} color="yellow" icon={XCircle}        description="Duplicate submissions (same client + listing link)" />
+            <KpiCard label="NDA Signed"        value={byStatus.find(s => s.name === 'NDA Signed')?.count ?? 0} color="green" icon={CheckCircle} description="Deals where NDA has been signed" />
+            <KpiCard label="Axed"              value={byStatus.find(s => s.name === 'Axed')?.count ?? 0}       color="red"   icon={XCircle}     description="Deals that have been rejected/axed" />
+            <KpiCard label="Overdue"           value={overdue.length} color="purple" icon={AlertTriangle}  description="Deals past their set due date" />
           </div>
 
           {/* Charts row */}
