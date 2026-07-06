@@ -81,36 +81,33 @@ export function getWeeksInMonth(year, month) {
   
   if (dates.length === 0) return weeks
   
-  let weekStart = 0
+  // Find the Monday before or on the first day of the month
+  const firstDay = new Date(dates[0] + 'T00:00:00Z')
+  const firstDayOfWeek = firstDay.getUTCDay()
+  const daysToMonday = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
+  const firstMonday = new Date(firstDay)
+  firstMonday.setUTCDate(firstDay.getUTCDate() - daysToMonday)
   
-  for (let i = 0; i < dates.length; i++) {
-    const d = new Date(dates[i] + 'T00:00:00Z')
-    const day = d.getUTCDay()
+  // Find the Sunday after or on the last day of the month
+  const lastDay = new Date(dates[dates.length - 1] + 'T00:00:00Z')
+  const lastDayOfWeek = lastDay.getUTCDay()
+  const daysToSunday = lastDayOfWeek === 0 ? 0 : 7 - lastDayOfWeek
+  const lastSunday = new Date(lastDay)
+  lastSunday.setUTCDate(lastDay.getUTCDate() + daysToSunday)
+  
+  // Generate Monday-Sunday weeks
+  let currentMonday = new Date(firstMonday)
+  while (currentMonday <= lastSunday) {
+    const currentSunday = new Date(currentMonday)
+    currentSunday.setUTCDate(currentMonday.getUTCDate() + 6)
     
-    // When we hit a Monday (and it's not the first day), close the previous week
-    if (day === 1 && i > 0) {
-      const startDate = dates[weekStart]
-      const endDate = dates[i - 1]
-      const startD = new Date(startDate + 'T00:00:00Z')
-      const endD = new Date(endDate + 'T00:00:00Z')
-      const startStr = `${startD.getUTCFullYear()}-${String(startD.getUTCMonth() + 1).padStart(2, '0')}-${String(startD.getUTCDate()).padStart(2, '0')}`
-      const endStr = `${endD.getUTCFullYear()}-${String(endD.getUTCMonth() + 1).padStart(2, '0')}-${String(endD.getUTCDate()).padStart(2, '0')}`
-      const key = `${startD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-      weeks.push({ start: startStr, end: endStr, label: key })
-      weekStart = i
-    }
-  }
-  
-  // Add the final week
-  if (weekStart < dates.length) {
-    const startDate = dates[weekStart]
-    const endDate = dates[dates.length - 1]
-    const startD = new Date(startDate + 'T00:00:00Z')
-    const endD = new Date(endDate + 'T00:00:00Z')
-    const startStr = `${startD.getUTCFullYear()}-${String(startD.getUTCMonth() + 1).padStart(2, '0')}-${String(startD.getUTCDate()).padStart(2, '0')}`
-    const endStr = `${endD.getUTCFullYear()}-${String(endD.getUTCMonth() + 1).padStart(2, '0')}-${String(endD.getUTCDate()).padStart(2, '0')}`
-    const key = `${startD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    const startStr = `${currentMonday.getUTCFullYear()}-${String(currentMonday.getUTCMonth() + 1).padStart(2, '0')}-${String(currentMonday.getUTCDate()).padStart(2, '0')}`
+    const endStr = `${currentSunday.getUTCFullYear()}-${String(currentSunday.getUTCMonth() + 1).padStart(2, '0')}-${String(currentSunday.getUTCDate()).padStart(2, '0')}`
+    const key = `${currentMonday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })} - ${currentSunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`
     weeks.push({ start: startStr, end: endStr, label: key })
+    
+    // Move to next Monday
+    currentMonday.setUTCDate(currentMonday.getUTCDate() + 7)
   }
   
   return weeks
