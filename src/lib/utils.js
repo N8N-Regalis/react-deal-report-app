@@ -32,7 +32,8 @@ export function getStatusColor(status) {
 
 export function formatDate(dateStr) {
   if (!dateStr) return '—'
-  const d = new Date(dateStr)
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+  const d = dateOnly ? new Date(dateStr + 'T00:00:00') : new Date(dateStr)
   if (isNaN(d)) return dateStr
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }

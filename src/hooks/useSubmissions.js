@@ -98,11 +98,7 @@ export function useSubmissions(filters = {}) {
     if (filters.quarter)      rows = rows.filter(r => r.quarter === filters.quarter)
     if (filters.week)         rows = rows.filter(r => r.week === filters.week)
     if (filters.sourceDate) {
-      rows = rows.filter(r => {
-        const utcDate = new Date(r.source_date + 'T00:00:00Z')
-        const localDateStr = utcDate.toLocaleDateString('en-CA') // en-CA gives YYYY-MM-DD format
-        return localDateStr === filters.sourceDate
-      })
+      rows = rows.filter(r => r.source_date === filters.sourceDate)
     }
     if (filters.partnerName)  rows = rows.filter(r => r.partner_name === filters.partnerName)
     if (filters.sourcerEmail) rows = rows.filter(r => r.sourcer_email === filters.sourcerEmail)
