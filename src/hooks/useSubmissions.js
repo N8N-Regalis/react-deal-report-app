@@ -69,15 +69,25 @@ export function useSubmissions(filters = {}) {
   const [allData, setAllData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState(null)
+  const [lastRefreshed, setLastRefreshed] = useState(null)
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     let cancelled = false
     setLoading(true)
     fetchAllRows()
-      .then(rows => { if (!cancelled) { setAllData(rows); setLoading(false) } })
+      .then(rows => { if (!cancelled) { setAllData(rows); setLoading(false); setLastRefreshed(new Date()) } })
       .catch(e  => { if (!cancelled) { setError(e.message); setLoading(false) } })
     return () => { cancelled = true }
   }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const refetch = useCallback(() => {
+    invalidateCache()
+    fetchData()
+  }, [fetchData])
 
   const data = useMemo(() => {
     let rows = allData
@@ -85,13 +95,19 @@ export function useSubmissions(filters = {}) {
     if (filters.month)        rows = rows.filter(r => r.month === filters.month)
     if (filters.quarter)      rows = rows.filter(r => r.quarter === filters.quarter)
     if (filters.week)         rows = rows.filter(r => r.week === filters.week)
-    if (filters.sourceDate)   rows = rows.filter(r => r.source_date === filters.sourceDate)
+    if (filters.sourceDate) {
+      rows = rows.filter(r => {
+        const utcDate = new Date(r.source_date + 'T00:00:00Z')
+        const localDateStr = utcDate.toLocaleDateString('en-CA') // en-CA gives YYYY-MM-DD format
+        return localDateStr === filters.sourceDate
+      })
+    }
     if (filters.partnerName)  rows = rows.filter(r => r.partner_name === filters.partnerName)
     if (filters.sourcerEmail) rows = rows.filter(r => r.sourcer_email === filters.sourcerEmail)
     return rows
   }, [allData, JSON.stringify(filters)])
 
-  return { data, loading, error }
+  return { data, loading, error, lastRefreshed, refetch }
 }
 
 export function useSubmissionsMeta(userMap = {}) {

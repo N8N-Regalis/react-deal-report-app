@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { FileText, CheckCircle, XCircle, Clock, AlertTriangle, Users } from 'lucide-react'
+import { FileText, CheckCircle, XCircle, Clock, AlertTriangle, Users, RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import FilterBar, { FilterGroup } from '../components/FilterBar'
 import KpiCard from '../components/KpiCard'
@@ -17,8 +17,20 @@ export default function Dashboard() {
   const [year, setYear] = useState(String(currentYear))
   const { userMap, loading: usersLoading } = useBitrixUsers()
   const { meta } = useSubmissionsMeta(userMap)
-  const { data: rawData, loading: dataLoading, error } = useSubmissions({ year: Number(year) })
+  const { data: rawData, loading: dataLoading, error, lastRefreshed, refetch } = useSubmissions({ year: Number(year) })
   const loading = usersLoading || dataLoading
+
+  const formatLastRefreshed = (date) => {
+    if (!date) return null
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/New_York'
+    }).format(date)
+  }
   // Compute duplicates based on: same partner + listing link appearing multiple times with Source Type = "New"
   const dataWithDuplicates = useMemo(() => {
     // First, enrich with user data
@@ -142,7 +154,24 @@ export default function Dashboard() {
 
   return (
     <div className="pb-10">
-      <PageHeader title="Dashboard" subtitle="Deal sourcing summary and analytics" />
+      <PageHeader 
+        title="Dashboard" 
+        subtitle="Deal sourcing summary and analytics"
+      >
+        {lastRefreshed && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500">Last updated: {formatLastRefreshed(lastRefreshed)} EST</span>
+            <button
+              onClick={refetch}
+              disabled={loading}
+              className="p-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+              title="Refresh data"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        )}
+      </PageHeader>
 
       <FilterBar>
         <FilterGroup label="Year">

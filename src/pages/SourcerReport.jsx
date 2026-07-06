@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import FilterBar, { FilterGroup } from '../components/FilterBar'
 import LoadingSpinner, { ErrorMessage } from '../components/LoadingSpinner'
@@ -34,7 +34,7 @@ export default function SourcerReport() {
     return f
   }, [year, month, week, partner, shiftDate])
 
-  const { data: rawData, loading, error } = useSubmissions(filters)
+  const { data: rawData, loading, error, lastRefreshed, refetch } = useSubmissions(filters)
   const data = useMemo(() => {
     let rows = rawData.map(r => {
       const u = userMap[r.sourcer_email || '']
@@ -55,12 +55,38 @@ export default function SourcerReport() {
     return getWeeksInMonth(Number(year), monthNum)
   }, [year, month])
 
+  const formatLastRefreshed = (date) => {
+    if (!date) return null
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/New_York'
+    }).format(date)
+  }
+
   return (
     <div className="pb-10">
       <PageHeader
         title="Sourcer Report"
         subtitle="Individual sourcer submissions filtered by shift details"
-      />
+      >
+        {lastRefreshed && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500">Last updated: {formatLastRefreshed(lastRefreshed)} EST</span>
+            <button
+              onClick={refetch}
+              disabled={loading}
+              className="p-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+              title="Refresh data"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        )}
+      </PageHeader>
 
       {/* Header filter section styled like the sheet */}
       <div className="mx-6 mb-4 card p-5">

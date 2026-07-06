@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Search, ExternalLink, X } from 'lucide-react'
+import { Search, ExternalLink, X, RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import FilterBar, { FilterGroup } from '../components/FilterBar'
 import LoadingSpinner, { ErrorMessage } from '../components/LoadingSpinner'
@@ -30,7 +30,7 @@ export default function Submissions() {
     return f
   }, [year, month, week])
 
-  const { data: rawData, loading, error } = useSubmissions(filters)
+  const { data: rawData, loading, error, lastRefreshed, refetch } = useSubmissions(filters)
 
   // Compute duplicates based on: same partner + listing link appearing multiple times with Source Type = "New"
   const data = useMemo(() => {
@@ -110,12 +110,38 @@ export default function Submissions() {
     return getWeeksInMonth(Number(year), monthNum)
   }, [year, month])
 
+  const formatLastRefreshed = (date) => {
+    if (!date) return null
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/New_York'
+    }).format(date)
+  }
+
   return (
     <div className="pb-10">
       <PageHeader
         title="All Submissions"
         subtitle="Full searchable submissions table"
-      />
+      >
+        {lastRefreshed && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500">Last updated: {formatLastRefreshed(lastRefreshed)} EST</span>
+            <button
+              onClick={refetch}
+              disabled={loading}
+              className="p-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+              title="Refresh data"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        )}
+      </PageHeader>
 
       <FilterBar>
         <FilterGroup label="Year">
