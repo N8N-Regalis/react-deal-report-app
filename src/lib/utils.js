@@ -12,7 +12,7 @@ export const MONTHS = [
 
 export const QUARTERS = ['Q1','Q2','Q3','Q4']
 
-export const TEAMS = ['EA','Lemon','Racquel','Rox','Unassigned']
+export const TEAMS = ['EA','Lemon','Racquel','Rox','Moeez','Unassigned']
 
 export const STATUS_COLORS = {
   'Inquired':             'bg-blue-100 text-blue-800',

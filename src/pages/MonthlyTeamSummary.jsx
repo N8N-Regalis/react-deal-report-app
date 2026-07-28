@@ -8,7 +8,7 @@ import { useSubmissions } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
 import { MONTHS, TEAMS, getYearRange } from '../lib/utils'
 
-const TEAM_COLORS = { EA: '#6366f1', Lemon: '#f59e0b', Racquel: '#10b981', Rox: '#f43f5e', Unassigned: '#9ca3af' }
+const TEAM_COLORS = { EA: '#6366f1', Lemon: '#f59e0b', Racquel: '#10b981', Rox: '#f43f5e', Moeez: '#8b5cf6', Unassigned: '#9ca3af' }
 
 export default function MonthlyTeamSummary() {
   const currentYear = new Date().getFullYear()

@@ -99,7 +99,7 @@ export default function Submissions() {
       )
     }
     return rows
-  }, [data, status, duplicate, search])
+  }, [data, team, status, duplicate, search])
 
   const paginated = useMemo(() => filtered.slice(0, page * PAGE_SIZE), [filtered, page])
   const hasMore   = paginated.length < filtered.length
