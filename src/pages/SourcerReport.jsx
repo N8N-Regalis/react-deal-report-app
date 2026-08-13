@@ -3,6 +3,7 @@ import { ExternalLink, RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import FilterBar, { FilterGroup } from '../components/FilterBar'
 import LoadingSpinner, { ErrorMessage } from '../components/LoadingSpinner'
+import ExportButton from '../components/ExportButton'
 import { useSubmissions, useSubmissionsMeta } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
 import { MONTHS, getStatusColor, formatDate, getYearRange, getWeeksInMonth } from '../lib/utils'
@@ -48,6 +49,24 @@ export default function SourcerReport() {
   const paginated = useMemo(() => data.slice(0, page * PAGE_SIZE), [data, page])
   const hasMore   = paginated.length < data.length
 
+  const exportHeaders = ['Submission ID', 'Source Date', 'Sourcer Name', 'Partner Name', 'Listing Name', 'Listing Link', 'Brokerage', 'Broker Name', 'Broker Email', 'Source Type', 'CIM', 'Status', 'Due Date', 'Notes/Details']
+  const exportRows = useMemo(() => data.map(r => [
+    r.id,
+    formatDate(r.source_date),
+    r.sourcer_name,
+    r.partner_name,
+    r.listing_name,
+    r.listing_link,
+    r.brokerage,
+    r.broker_name,
+    r.broker_email,
+    r.source_type,
+    r.cim_received ? 'Yes' : 'No',
+    r.status,
+    formatDate(r.due_date),
+    r.notes,
+  ]), [data])
+
   const years = getYearRange()
   const weeks = useMemo(() => {
     if (month === 'all') return []
@@ -84,6 +103,7 @@ export default function SourcerReport() {
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
+            <ExportButton headers={exportHeaders} rows={exportRows} filename="sourcer-report" sheetName="Sourcer Report" />
           </div>
         )}
       </PageHeader>

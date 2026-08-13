@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import FilterBar, { FilterGroup } from '../components/FilterBar'
 import LoadingSpinner, { ErrorMessage } from '../components/LoadingSpinner'
+import ExportButton from '../components/ExportButton'
 import { useSubmissions, useSubmissionsMeta } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
 import { MONTHS, getAllDatesInMonth, getYearRange, getWeeksInMonth } from '../lib/utils'
@@ -122,6 +123,25 @@ export default function DailyGridByPartner() {
     return d.getUTCDate()
   }
 
+  const getMonthFromDateStr = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00Z')
+    return d.getUTCMonth() + 1
+  }
+
+  const exportHeaders = useMemo(() => [
+    'Client Name',
+    'Total',
+    ...filteredDates.map(d => `${DAY_LABELS[getDayFromDateStr(d)]} ${getMonthFromDateStr(d)}/${getDateFromDateStr(d)}`),
+  ], [filteredDates])
+  const exportRows = useMemo(() => {
+    const rows = grid.map(row => [row.partner, row.total, ...filteredDates.map(d => row.days[d] || 0)])
+    if (grid.length > 0) {
+      const grandTotal = grid.reduce((s, r) => s + r.total, 0)
+      rows.push(['TOTAL', grandTotal, ...filteredDates.map(d => grid.reduce((s, r) => s + (r.days[d] || 0), 0))])
+    }
+    return rows
+  }, [grid, filteredDates])
+
   return (
     <div className="pb-10">
       <PageHeader
@@ -139,6 +159,7 @@ export default function DailyGridByPartner() {
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
+            <ExportButton headers={exportHeaders} rows={exportRows} filename="daily-grid-by-client" sheetName="Daily Grid by Client" />
           </div>
         )}
       </PageHeader>

@@ -4,6 +4,7 @@ import { RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import FilterBar, { FilterGroup } from '../components/FilterBar'
 import LoadingSpinner, { ErrorMessage } from '../components/LoadingSpinner'
+import ExportButton from '../components/ExportButton'
 import { useSubmissions } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
 import { MONTHS, TEAMS, getYearRange } from '../lib/utils'
@@ -91,6 +92,14 @@ export default function MonthlyTeamSummary() {
 
   const grandTotal = useMemo(() => Object.values(monthlyTotals).reduce((s, v) => s + v, 0), [monthlyTotals])
 
+  const exportHeaders = ['Month', ...TEAMS, 'Total']
+  const exportRows = useMemo(() => {
+    const rows = MONTHS.map(m => [m, ...TEAMS.map(t => teamMonthlyData[m]?.[t] || 0), monthlyTotals[m] || 0])
+    const teamTotals = TEAMS.map(t => MONTHS.reduce((s, m) => s + (teamMonthlyData[m]?.[t] || 0), 0))
+    rows.push(['TOTAL', ...teamTotals, grandTotal])
+    return rows
+  }, [teamMonthlyData, monthlyTotals, grandTotal])
+
   const years = getYearRange()
 
   const formatLastRefreshed = (date) => {
@@ -122,6 +131,7 @@ export default function MonthlyTeamSummary() {
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
+            <ExportButton headers={exportHeaders} rows={exportRows} filename="monthly-team-summary" sheetName="Monthly Team Summary" />
           </div>
         )}
       </PageHeader>

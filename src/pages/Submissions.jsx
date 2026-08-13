@@ -3,6 +3,7 @@ import { Search, ExternalLink, X, RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import FilterBar, { FilterGroup } from '../components/FilterBar'
 import LoadingSpinner, { ErrorMessage } from '../components/LoadingSpinner'
+import ExportButton from '../components/ExportButton'
 import { useSubmissions, useSubmissionsMeta } from '../hooks/useSubmissions'
 import { useBitrixUsers } from '../hooks/useBitrixUsers'
 import { MONTHS, getStatusColor, formatDate, getYearRange, getWeeksInMonth } from '../lib/utils'
@@ -104,6 +105,25 @@ export default function Submissions() {
   const paginated = useMemo(() => filtered.slice(0, page * PAGE_SIZE), [filtered, page])
   const hasMore   = paginated.length < filtered.length
   const years     = getYearRange()
+
+  const exportHeaders = ['ID', 'Source Date', 'Sourcer', 'Team', 'Partner', 'Listing Name', 'Listing Link', 'Brokerage', 'Status', 'CIM', 'Duplicate?', 'Duplicate Of', 'Due Date', 'Week']
+  const exportRows = useMemo(() => filtered.map(r => [
+    r.id,
+    formatDate(r.source_date),
+    r.sourcer_name,
+    r.team_name,
+    r.partner_name,
+    r.listing_name,
+    r.listing_link,
+    r.brokerage,
+    r.status,
+    r.cim_received ? 'Yes' : 'No',
+    r.is_duplicate,
+    r.duplicate_of || '',
+    formatDate(r.due_date),
+    r.week,
+  ]), [filtered])
+
   const weeks      = useMemo(() => {
     if (month === 'all') return []
     const monthNum = MONTHS.indexOf(month) + 1
@@ -139,6 +159,7 @@ export default function Submissions() {
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
+            <ExportButton headers={exportHeaders} rows={exportRows} filename="submissions" sheetName="Submissions" />
           </div>
         )}
       </PageHeader>
