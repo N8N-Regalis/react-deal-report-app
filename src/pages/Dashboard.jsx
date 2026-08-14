@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { FileText, CheckCircle, XCircle, Clock, AlertTriangle, Users, RefreshCw } from 'lucide-react'
+import { FileText, CheckCircle, XCircle, Clock, AlertTriangle, Users, RefreshCw, Search, X } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import FilterBar, { FilterGroup } from '../components/FilterBar'
 import KpiCard from '../components/KpiCard'
@@ -11,6 +11,8 @@ import { MONTHS, QUARTERS, getStatusColor, formatDate, getYearRange } from '../l
 
 const TEAM_COLORS = { EA: '#6366f1', Lemon: '#f59e0b', Racquel: '#10b981', Rox: '#f43f5e' }
 const QUARTER_MAP = { 1:'Q1',2:'Q1',3:'Q1', 4:'Q2',5:'Q2',6:'Q2', 7:'Q3',8:'Q3',9:'Q3', 10:'Q4',11:'Q4',12:'Q4' }
+// Placeholder text entered when a field wasn't applicable — excluded from breakdowns
+const PLACEHOLDER_VALUES = new Set(['n/a', 'na'])
 
 export default function Dashboard() {
   const currentYear = new Date().getFullYear()
@@ -146,6 +148,17 @@ export default function Dashboard() {
       .sort((a, b) => b.count - a.count)
   }, [unique])
 
+  const byBrokerage = useMemo(() => {
+    const map = {}
+    unique.forEach(r => {
+      const name = (r.brokerage || '').trim()
+      if (!name || PLACEHOLDER_VALUES.has(name.toLowerCase())) return
+      map[name] = (map[name] || 0) + 1
+    })
+    return Object.entries(map).map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+  }, [unique])
+
   const overdue = useMemo(() => data.filter(r => r.overdue === true || r.overdue === 'TRUE'), [data])
 
   const duplicateCount = useMemo(() => data.filter(r => r.is_duplicate === 'Duplicate').length, [data])
@@ -265,48 +278,17 @@ export default function Dashboard() {
           </div>
 
           {/* By Partner */}
-          <div className="card lg:col-span-1">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-700">By Client / Partner</h3>
-              <span className="text-xs text-gray-400 font-medium">{byPartner.length} clients</span>
-            </div>
-            <div className="overflow-x-auto overflow-y-auto h-[90vh]">
-              <table className="w-full">
-                <thead className="sticky top-0 bg-white">
-                  <tr>
-                    <th className="table-th w-8">#</th>
-                    <th className="table-th">Client Name</th>
-                    <th className="table-th text-right">Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {byPartner.map((row, i) => {
-                    const maxCount = byPartner[0]?.count || 1
-                    const barPct = Math.round((row.count / maxCount) * 100)
-                    return (
-                      <tr key={row.name} className="hover:bg-gray-50 group">
-                        <td className="table-td text-gray-400 text-xs w-8">{i + 1}</td>
-                        <td className="table-td">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-gray-800">{row.name}</span>
-                            <div className="h-1 w-full max-w-xs rounded-full bg-gray-100">
-                              <div className="h-1 rounded-full bg-indigo-400 transition-all" style={{ width: `${barPct}%` }} />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="table-td text-right font-semibold text-gray-800">{row.count.toLocaleString()}</td>
-                      </tr>
-                    )
-                  })}
-                  {byPartner.length === 0 && (
-                    <tr><td colSpan={3} className="table-td text-center text-gray-400">No data</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <RankedTable
+            title="By Client / Partner"
+            nameHeader="Client Name"
+            unit="clients"
+            rows={byPartner}
+          />
 
           </div>{/* end By Week + By Partner grid */}
+
+          {/* By Associate + By Brokerage */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
           {/* By Associate */}
           <div className="card">
@@ -332,6 +314,20 @@ export default function Dashboard() {
               </table>
             </div>
           </div>
+
+          {/* By Brokerage */}
+          <RankedTable
+            title="By Brokerage"
+            nameHeader="Brokerage"
+            unit="brokerages"
+            rows={byBrokerage}
+            barColor="bg-emerald-400"
+            heightClass="max-h-80"
+            searchable
+            searchPlaceholder="Search brokerage…"
+          />
+
+          </div>{/* end By Associate + By Brokerage grid */}
 
           {/* Overdue Deals */}
           {overdue.length > 0 && (
@@ -382,6 +378,85 @@ export default function Dashboard() {
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+function RankedTable({ title, nameHeader, unit, rows, barColor = 'bg-indigo-400', heightClass = 'h-[90vh]', searchable = false, searchPlaceholder = 'Search…' }) {
+  const [search, setSearch] = useState('')
+  const maxCount = rows[0]?.count || 1
+  const query = search.trim().toLowerCase()
+  // Keep each row's rank from the full list so numbering stays stable while filtering
+  const visibleRows = useMemo(() => {
+    const ranked = rows.map((row, i) => ({ ...row, rank: i + 1 }))
+    return query ? ranked.filter(row => row.name.toLowerCase().includes(query)) : ranked
+  }, [rows, query])
+
+  return (
+    <div className="card lg:col-span-1">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+          <span className="text-xs text-gray-400 font-medium">
+            {query ? `${visibleRows.length} of ${rows.length}` : rows.length} {unit}
+          </span>
+        </div>
+        {searchable && (
+          <div className="relative mt-3">
+            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              className="select-field pl-8 pr-8 w-full"
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      <div className={`overflow-y-auto ${heightClass}`}>
+        {/* table-fixed so long names wrap instead of widening the table */}
+        <table className="w-full table-fixed">
+          <thead className="sticky top-0 bg-white">
+            <tr>
+              <th className="table-th w-12">#</th>
+              <th className="table-th">{nameHeader}</th>
+              <th className="table-th text-right w-20">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleRows.map(row => {
+              const barPct = Math.round((row.count / maxCount) * 100)
+              return (
+                <tr key={row.name} className="hover:bg-gray-50 group">
+                  <td className="table-td text-gray-400 text-xs align-top">{row.rank}</td>
+                  <td className="table-td">
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <span className="font-medium text-gray-800 [overflow-wrap:anywhere]">{row.name}</span>
+                      <div className="h-1 w-full max-w-xs rounded-full bg-gray-100">
+                        <div className={`h-1 rounded-full ${barColor} transition-all`} style={{ width: `${barPct}%` }} />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="table-td text-right font-semibold text-gray-800 align-top whitespace-nowrap">{row.count.toLocaleString()}</td>
+                </tr>
+              )
+            })}
+            {visibleRows.length === 0 && (
+              <tr>
+                <td colSpan={3} className="table-td text-center text-gray-400">
+                  {query ? `No matches for "${search.trim()}"` : 'No data'}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
